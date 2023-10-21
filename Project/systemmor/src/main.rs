@@ -7,18 +7,25 @@ use ratatui::{
     Terminal,
     text::{Span, Line},
     style::{Style, Color, Modifier},
-    symbols,
+    symbols::*,
+    prelude::*,
 };
 use std::time::Instant;
 use std::sync::mpsc;
 use crossterm::{
-    event::{self, KeyCode},
+    event::{self, KeyCode, DisableMouseCapture, EnableMouseCapture},
     terminal::{disable_raw_mode, enable_raw_mode},
+    execute,
 };
 
+#[derive(Default)]
+struct App {
+    pub vertical_scroll_state: ScrollbarState,
+    pub vertical_scroll: usize,
+}
 enum Event<T> {
     Input(T),
-    Tick,
+    Tick
 }
 
 #[allow(dead_code)]
@@ -52,20 +59,20 @@ impl From<MenuItem> for usize {
 }
 fn main() -> Result<(), io::Error> {
     enable_raw_mode().expect("can run in raw mode");
-
+    
     let (tx, rx) = mpsc::channel();
     let tick_rate = Duration::from_millis(250);
     thread::spawn(move || {
         let mut last_tick = Instant::now();
         loop {
             let timeout = tick_rate.checked_sub(last_tick.elapsed()).unwrap_or_else(|| Duration::from_secs(0));
-
+            
             if event::poll(timeout).expect("poll works") {
                 if let event::Event::Key(key) = event::read().expect("can read event") {
                     tx.send(Event::Input(key)).expect("can send event");
                 }
             }
-
+            
             if last_tick.elapsed() >= tick_rate {
                 if tx.send(Event::Tick).is_err() {
                     break;
@@ -74,7 +81,9 @@ fn main() -> Result<(), io::Error> {
             }
         }
     });
-
+    
+    execute!(io::stdout(), EnableMouseCapture).expect("can enable mouse capture");
+    let mut app = App::default();
     let mut sys = System::new_all();
     let stdout = io::stdout();
     let backend = CrosstermBackend::new(stdout);
@@ -302,30 +311,38 @@ fn main() -> Result<(), io::Error> {
                     for (i, network) in sys.networks(){
                         let transmitted_kb = (network.transmitted() as f64 * 8.0) / 1000.0;
                         let received_kb = (network.received() as f64 * 8.0) / 1000.0;
-                        let network_stat = format!("Network [{}]: {:.2} / {:.2} KB", i, received_kb, transmitted_kb);
+                        let network_stat1 = format!("Network [{}]", i);
                         network_usage.push(Line::from(vec![
-                            Span::raw(network_stat),
+                            Span::raw(network_stat1),
+                        ]));
+                        let network_stat2 = format!("Received: {:.2} KB Transmitted: {:.2} KB", received_kb, transmitted_kb);
+                        network_usage.push(Line::from(vec![
+                            Span::raw(network_stat2),
+                            ]));
+                        let space = format!(" ");
+                        network_usage.push(Line::from(vec![
+                            Span::raw(space),
                         ]));
                     }
-
+                    
                     let network_chunk = Layout::default()
-                        .direction(Direction::Horizontal)
-                        .constraints(
-                            [
-                                Constraint::Percentage(30),
-                                Constraint::Percentage(70),
+                    .direction(Direction::Horizontal)
+                    .constraints(
+                        [
+                            Constraint::Percentage(30),
+                            Constraint::Percentage(70),
                             ].as_ref()
                         )
                         .split(chunks[1]);
-
+                    
                     let mut network_bar_data: Vec<(String, u64)> = vec![];
                     for (i, network) in sys.networks(){
                         let network_stat = format!("{}", i);
                         network_bar_data.push((network_stat, network.received() as u64));
                     }
-
+                    
                     let network_bar_data_map: Vec<(&str, u64)> = network_bar_data.iter().map(|(s, u)| (s.as_str(), *u)).collect();
-
+                    
                     let network_barchart = BarChart::default()
                     .block(Block::default().title("Network Bar Graph").borders(Borders::ALL))
                     .data(&network_bar_data_map)
@@ -336,30 +353,63 @@ fn main() -> Result<(), io::Error> {
                     .label_style(Style::default().fg(Color::White))
                     .bar_style(Style::default().fg(Color::LightBlue))
                     .direction(Direction::Vertical);
-
-                    let network_paragraph = Paragraph::new(network_usage)
-                        .block(Block::default().borders(Borders::ALL).title("Network").borders(Borders::ALL))
-                        .style(Style::default().fg(Color::White))
-                        .alignment(ratatui::layout::Alignment::Left);
+                
+                    app.vertical_scroll_state = app.vertical_scroll_state.content_length(network_usage.len() as u16);
+                    let network_paragraph = Paragraph::new(network_usage.clone())
+                    .block(Block::default().borders(Borders::ALL).title("Network").borders(Borders::ALL))
+                    .style(Style::default().fg(Color::White))
+                    .alignment(ratatui::layout::Alignment::Left)
+                    .scroll((app.vertical_scroll as u16 , 0));
+                    
                     rect.render_widget(network_paragraph, network_chunk[0]);
+                    rect.render_stateful_widget(Scrollbar::default()
+                    .orientation(ScrollbarOrientation::VerticalRight)
+                    .symbols(scrollbar::VERTICAL)
+                    .begin_symbol(None)
+                    .track_symbol(None)
+                    .end_symbol(None),
+                    network_chunk[0].inner(&Margin {
+                        vertical: 1,
+                        horizontal: 0,
+                    }),
+                     &mut app.vertical_scroll_state
+                    );
+
                     rect.render_widget(network_barchart, network_chunk[1]);
                 }
                 MenuItem::Process => {
                     sys.refresh_all();
                     let mut process_usage = vec![];
                     for (pid, process) in sys.processes() {
-                        let process_stat = format!("[{}] {} {:.2} MB", pid, process.name(), process.memory() as f64 / 1_048_576.0);
+                        let formatted_pid = format!("Process ID: {:7}", pid);
+                        let process_stat = format!("[{:17}] {:40} {:.2} MB", formatted_pid, process.name(), process.memory() as f64 / 1_048_576.0);
                         process_usage.push(Line::from(vec![
                             Span::raw(process_stat),
                         ]));
                     }
-                    let process_paragraph = Paragraph::new(process_usage)
+                    app.vertical_scroll_state = app.vertical_scroll_state.content_length(process_usage.len() as u16);
+
+                    let process_paragraph = Paragraph::new(process_usage.clone())
                         .block(Block::default().borders(Borders::ALL).title("Process"))
                         .style(Style::default().fg(Color::White))
-                        .alignment(ratatui::layout::Alignment::Left);
+                        .alignment(ratatui::layout::Alignment::Left)
+                        .scroll((app.vertical_scroll as u16 , 0));
 
                     rect.render_widget(process_paragraph, chunks[1]);
+                    rect.render_stateful_widget(Scrollbar::default()
+                    .orientation(ScrollbarOrientation::VerticalRight)
+                    .symbols(scrollbar::VERTICAL)
+                    .begin_symbol(None)
+                    .track_symbol(None)
+                    .end_symbol(None),
+                    chunks[1].inner(&Margin {
+                        vertical: 1,
+                        horizontal: 0,
+                    }),
+                     &mut app.vertical_scroll_state
+                    );
                 }
+            
                 MenuItem::Disk => {
                     sys.refresh_all();
                     let disk = sys.disks();
@@ -396,7 +446,7 @@ fn main() -> Result<(), io::Error> {
                     sys.refresh_all();
                     let mut temp_usage = vec![];
                     for components in sys.components(){
-                        let temp_stat = format!("[{:10}], {:.1}°C", components.label(), components.temperature());
+                        let temp_stat = format!("[{:17}], {:.1}°C", components.label(), components.temperature());
                         temp_usage.push(Line::from(vec![
                             Span::raw(temp_stat)
                         ]))
@@ -431,13 +481,29 @@ fn main() -> Result<(), io::Error> {
                     .bar_style(Style::default().fg(Color::LightBlue))
                     .direction(Direction::Vertical);
 
+                    app.vertical_scroll_state = app.vertical_scroll_state.content_length(temp_usage.len() as u16);
+
                     let temp_paragraph = Paragraph::new(temp_usage)
                     .block(Block::default().borders(Borders::ALL).title("Temperature"))
                     .style(Style::default().fg(Color::White))
-                    .alignment(ratatui::layout::Alignment::Left);
+                    .alignment(ratatui::layout::Alignment::Left)
+                    .scroll((app.vertical_scroll as u16 , 0));
                     
                     rect.render_widget(temp_barchart, temp_chunk[1]);
                     rect.render_widget(temp_paragraph, temp_chunk[0]);
+                    rect.render_stateful_widget(Scrollbar::default()
+                    .orientation(ScrollbarOrientation::VerticalRight)
+                    .symbols(scrollbar::VERTICAL)
+                    .begin_symbol(None)
+                    .track_symbol(None)
+                    .end_symbol(None),
+                    temp_chunk[0].inner(&Margin {
+                        vertical: 1,
+                        horizontal: 0,
+                    }),
+                     &mut app.vertical_scroll_state
+                    );
+
                 }
                 MenuItem::Battery => {
                     sys.refresh_all();
@@ -494,12 +560,13 @@ fn main() -> Result<(), io::Error> {
 
             rect.render_widget(tabs, chunks[0]);
         })?;
-
+                
         match rx.recv() {
             Ok(event) => match event { //check if event is a keypress or tick
                 Event::Input(event) => match event.code { // check if keypress is a key if not ignore
                     KeyCode::Char('q') => {
                         disable_raw_mode()?;
+                        execute!(io::stdout(), DisableMouseCapture).expect("can disable mouse capture");
                         break;
                     }
                     KeyCode::Char('h') => {
@@ -525,6 +592,18 @@ fn main() -> Result<(), io::Error> {
                     }
                     KeyCode::Char('b') => {
                         active_menu_item = MenuItem::Battery;
+                    }
+                    KeyCode::Down => {
+                        app.vertical_scroll = app.vertical_scroll.saturating_add(1);
+                        app.vertical_scroll_state = app
+                            .vertical_scroll_state
+                            .position(app.vertical_scroll as u16);
+                    }
+                    KeyCode::Up => {
+                        app.vertical_scroll = app.vertical_scroll.saturating_sub(1);
+                        app.vertical_scroll_state = app
+                            .vertical_scroll_state
+                            .position(app.vertical_scroll as u16);
                     }
                     _ => {}
                 },
