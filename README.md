@@ -136,20 +136,20 @@ You can run the program simply by typing this command in the terminal:
 
 To navigate through all the program's features, you can follow these steps:
 
-- Press "c" to access the CPU section
+- Press `c` to access the CPU section
 
-- Press "m" to access the Memory section
+- Press `m` to access the Memory section
 
-- Press "n" to access the Network section
+- Press `n` to access the Network section
 
-- Press "p" to access the Process section
+- Press `p` to access the Process section
 
-- Press "d" to access the Disk section
+- Press `d` to access the Disk section
 
-- Press "t" to access the Temperature section
+- Press `t` to access the Temperature section
 
-- Press "b" to access the Battery section
+- Press `b` to access the Battery section
 
-- Press "h" to return to the Home page
+- Press `h` to return to the Home page
 
-- Press "q" to quit the program
+- Press `q` to quit the program
