@@ -5,11 +5,8 @@ Pannatat Sribusarakham 66011109
 
 King Mongkut's Institute of Technology Ladkrabang</h3>
 
-<div align="center">
+![all](https://github.com/cenpnt/Rust-Project/assets/139846503/929c9096-ed4e-410b-ae55-41946f214cce)
 
-![vdo](https://media2.giphy.com/media/v1.Y2lkPTc5MGI3NjExdW54cnFxdGpnZ25nZ3lwZG8xdDlrZXQzM2dqY2NuYjlkZmF5Nng1NCZlcD12MV9pbnRlcm5hbF9naWZfYnlfaWQmY3Q9Zw/03fuPURLEkhE6DVIME/giphy.gif)
-
-</div>
 
 <details> 
 <summary> Table of Contents </summary>
