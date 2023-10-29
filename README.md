@@ -20,6 +20,8 @@ King Mongkut's Institute of Technology Ladkrabang</h3>
 * [Run the Program](#run-the-program)
 </details>
 
+<img src="vdo/all.gif"/>
+
 ## Installation
 
 >[!IMPORTANT]
