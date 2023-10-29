@@ -52,6 +52,9 @@ Furthermore, the TUI interface is equipped to display bar graphs, line charts an
 ## Key Features
 
 - ### CPU Usage
+  
+     ![cpu](https://github.com/cenpnt/Rust-Project/assets/139846503/6122e2e2-6504-4e6d-94f7-fd273e932785)
+
     This section shows the following data:
 
     - CPU threads
@@ -61,6 +64,8 @@ Furthermore, the TUI interface is equipped to display bar graphs, line charts an
 ___
 
 - ### Memory
+     ![memory](https://github.com/cenpnt/Rust-Project/assets/139846503/bc2a8c57-e5ac-4ac9-84e5-a131e2a9414f)
+
     This section shows the following data:
 
     - Available memory
@@ -70,6 +75,9 @@ ___
 ---
 
 * ### Network
+   ![network](https://github.com/cenpnt/Rust-Project/assets/139846503/a79c692a-bcec-4e27-81f6-94c4de3d4f6e)
+
+     
     This section shows the following data:
 
     - Received data
@@ -78,6 +86,8 @@ ___
 ---
 
 * ### Process
+  ![process](https://github.com/cenpnt/Rust-Project/assets/139846503/ae77410e-2c0e-4b02-b365-c97d5f277aef)
+
     This section shows the following data:
 
     - Process ID
@@ -87,6 +97,8 @@ ___
 --- 
 
 * ### Disk
+  <img width="1641" alt="disk screenshot" src="https://github.com/cenpnt/Rust-Project/assets/139846503/45e62f28-d658-4585-8656-77552557f0a5">
+
     This section shows the following data:
 
     - Name
@@ -99,6 +111,7 @@ ___
 ---
 
 * ### Temperature
+  
     This section shows the following data:
 
     - Name
@@ -108,6 +121,8 @@ ___
 ---
 
 * ### Battery
+  <img width="1641" alt="battery screenshot" src="https://github.com/cenpnt/Rust-Project/assets/139846503/b685950a-da18-4eb2-bd29-002f8f921e57">
+
     This section shows the following data:
     
     - State of battery (charging, discharging)
