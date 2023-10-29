@@ -111,7 +111,8 @@ ___
 ---
 
 * ### Temperature
-  
+  ![temp](https://github.com/cenpnt/Rust-Project/assets/139846503/8d63193b-731b-41a1-bd9d-333206de0bc4)
+
     This section shows the following data:
 
     - Name
