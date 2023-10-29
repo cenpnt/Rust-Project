@@ -176,7 +176,7 @@ fn main() -> Result<(), io::Error> {
                 Event::Input(event) => match event.code { // check if keypress is a key if not ignore
                     KeyCode::Char('q') => {
                         disable_raw_mode()?;
-                        execute!(io::stdout(), DisableMouseCapture).expect("can disable mouse capture");
+                        execute!(io::stdout(), DisableMouseCapture, LeaveAlternateScreen).expect("can disable mouse capture");
                         break;
                     }
                     KeyCode::Char('h') => {
