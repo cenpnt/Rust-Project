@@ -116,7 +116,7 @@ ___
     This section shows the following data:
 
     - Name
-    - Temperature in Celcius
+    - Temperature in Celsius
     - Bar graphs that compares the temperature of all the elements.
 
 ---
