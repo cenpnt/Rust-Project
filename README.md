@@ -153,3 +153,7 @@ To navigate through all the program's features, you can follow these steps:
 - Press `h` to return to the Home page
 
 - Press `q` to quit the program
+
+- Press `↑` to scroll up
+
+- Press `↓` to scroll down
