@@ -117,7 +117,7 @@ ___
 
     - Name
     - Temperature in Celsius
-    - Bar graphs that compares the temperature of all the elements.
+    - Bar graphs that compare the temperature of all the elements.
 
 ---
 
